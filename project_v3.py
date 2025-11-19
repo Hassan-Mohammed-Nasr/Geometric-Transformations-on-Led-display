@@ -146,16 +146,55 @@ elif TASK == 'demo':
 
         rotation_angle = np.deg2rad(3)
         center_x, center_y =  square_matrix[0,:].mean(), square_matrix[1,:].mean()
+        
+        # Helper function to fill polygon between 4 points
+        def fill_polygon(matrix, corners):
+            """Fill a quadrilateral defined by 4 corner points"""
+            # Extract corner coordinates
+            x_coords = [int(np.rint(corners[0, i])) for i in range(4)]
+            y_coords = [int(np.rint(corners[1, i])) for i in range(4)]
+            
+            # Find bounding box
+            min_x = max(0, min(x_coords))
+            max_x = min(ROWS - 1, max(x_coords))
+            min_y = max(0, min(y_coords))
+            max_y = min(COLS - 1, max(y_coords))
+            
+            # Use scanline fill algorithm
+            for y in range(min_y, max_y + 1):
+                intersections = []
+                for i in range(4):
+                    j = (i + 1) % 4
+                    x1, y1 = x_coords[i], y_coords[i]
+                    x2, y2 = x_coords[j], y_coords[j]
+                    
+                    if y1 <= y < y2 or y2 <= y < y1:
+                        if y2 != y1:
+                            x_intersect = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+                            intersections.append(x_intersect)
+                
+                intersections.sort()
+                for i in range(0, len(intersections), 2):
+                    if i + 1 < len(intersections):
+                        x_start = max(0, int(np.rint(intersections[i])))
+                        x_end = min(ROWS - 1, int(np.rint(intersections[i + 1])))
+                        for x in range(x_start, x_end + 1):
+                            matrix.SetPixel(x, y, 255, 255, 255)
+        
+        # Extract only the 4 corners from the square
+        corners_indices = [0, 11, 143, 132]  # top-left, top-right, bottom-right, bottom-left
+        corner_matrix = square_matrix[:, corners_indices]
 
         for _ in range (ITERATIONS):
     
             transformation = Translation(center_x, center_y) @ Rotation(rotation_angle) @ Translation(-center_x, -center_y)
-            square_matrix = transformation @ square_matrix
+            corner_matrix = transformation @ corner_matrix
+            
+            # Update center based on transformed corners
+            center_x, center_y = corner_matrix[0,:].mean(), corner_matrix[1,:].mean()
+            
             matrix.Clear()
-            for i in range(MxN):
-                x, y = int(np.rint(square_matrix[0,i])), int(np.rint(square_matrix[1,i]))
-                if 0 <= x < ROWS and 0 <= y < COLS:
-                    matrix.SetPixel(x, y, 255, 255, 255)
+            fill_polygon(matrix, corner_matrix)
             time.sleep(SECONDS_DELAY)
             
 
