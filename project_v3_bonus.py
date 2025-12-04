@@ -4,15 +4,19 @@ import numpy as np
 
 
 ## Configuration
-TASK = 'deliverable_1'
+TASK = 'demo'
 
-ROWS = 32
-COLS = 32 * 2
+ROWS_PER_MATRIX = 32
+COLS_PER_MATRIX = 32
+
+ROWS = 32 * 2
+COLS = 32  
 
 options = RGBMatrixOptions()
-options.rows = ROWS
-options.cols = COLS
+options.rows = ROWS_PER_MATRIX
+options.cols = COLS_PER_MATRIX
 options.chain_length = 2
+options.parallel = 1
 options.hardware_mapping = 'adafruit-hat'
 
 
@@ -76,7 +80,7 @@ elif TASK == 'demo':
     print("Executing Demo Task")
 
     MxN = 12*12
-    TRANSFORMATION = 'scaling' 
+    TRANSFORMATION = 'translation' 
     SECONDS_DELAY = 0.1 
     ITERATIONS = 100
     matrix = RGBMatrix(options = options)
@@ -86,8 +90,13 @@ elif TASK == 'demo':
 
     # Create a square in the center and extract the points
     i = 0
-    for x in range(10, 22):
-        for y in range(10, 22):
+    start_x = (ROWS - 12) // 2
+    start_y = (COLS - 12) // 2
+    end_x = start_x + 12
+    end_y = start_y + 12
+    
+    for x in range(start_x, end_x):
+        for y in range(start_y, end_y):
             matrix.SetPixel(x,y, 255, 255, 255)
             square_matrix[0,i] = x
             square_matrix[1,i] = y
@@ -117,7 +126,7 @@ elif TASK == 'demo':
 
     if TRANSFORMATION == 'translation':
 
-        cx, cy  = 1, 1
+        cx, cy  = 1, 0
 
         for _ in range (ITERATIONS):
 
@@ -256,7 +265,7 @@ elif TASK == 'demo':
 
     elif TRANSFORMATION == 'shearing':
 
-        cx, cy  = 0, 0.02
+        cx, cy  = 0.02, 0
         
         for _ in range (ITERATIONS):
 
