@@ -17,16 +17,29 @@ options.cols = COLS
 options.hardware_mapping = 'adafruit-hat'
 
 GPIO.setmode(GPIO.BCM)
-button_pin = 25  
-GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+up_button = 25  
+GPIO.setup(up_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+down_button = 19
+GPIO.setup(down_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 
-
-def change_speed(time_delay):
+def change_speed_up(time_delay):
     options = [0.05, 0.1, 0.2, 0.5]
     current = options.index(time_delay)
-    return options[(current + 1) % len(options)]
+    if current == len(options) - 1:
+        return options[current]  
+    else:
+        return options[current + 1]
+    
+def change_speed_down(time_delay):
+    options = [0.05, 0.1, 0.2, 0.5]
+    current = options.index(time_delay)
+    if current == 0:
+        return options[current]  
+    else:
+        return options[current - 1]
 
 
 def Translation(dx, dy):
@@ -117,7 +130,9 @@ elif TASK == 'demo':
     ITERATIONS = 100
     CURRENT_TRANSFORMATION = TRANSFORMATION
     matrix = RGBMatrix(options = options)
-    prev_button_state = GPIO.LOW
+
+    prev_up_button_state = GPIO.LOW
+    prev_down_button_state = GPIO.LOW
 
     while True:
         
@@ -140,15 +155,23 @@ elif TASK == 'demo':
             cx, cy  = 1, 1
 
             for _ in range (ITERATIONS):
-                current_button_state = GPIO.input(button_pin)
+                
+                current_up_button_state = GPIO.input(up_button)
+                current_down_button_state = GPIO.input(down_button)
 
-                if current_button_state == GPIO.HIGH and prev_button_state == GPIO.LOW:
-                    SECONDS_DELAY = change_speed(SECONDS_DELAY)
-                    print(f"Changed speed to: {SECONDS_DELAY}s delay")
-                    prev_button_state = current_button_state 
-                    time.sleep(0.3)  
-                    break
-                prev_button_state = current_button_state  
+                if current_up_button_state == GPIO.HIGH and prev_up_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_up(SECONDS_DELAY)
+                    print(f"Speed increased to: {SECONDS_DELAY}s delay")
+                    prev_up_button_state = current_up_button_state
+                    time.sleep(0.3)
+                if current_down_button_state == GPIO.HIGH and prev_down_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_down(SECONDS_DELAY)
+                    print(f"Speed decreased to: {SECONDS_DELAY}s delay")
+                    prev_down_button_state = current_down_button_state
+                    time.sleep(0.3)
+                    
+                prev_up_button_state = current_up_button_state
+                prev_down_button_state = current_down_button_state
 
                 top_x_left = int(square_matrix[0,:].min())
                 top_y_left = int(square_matrix[1,:].min())
@@ -215,15 +238,22 @@ elif TASK == 'demo':
             corner_matrix = square_matrix[:, corners_indices]
 
             for _ in range (ITERATIONS):
-                current_button_state = GPIO.input(button_pin)
+                current_up_button_state = GPIO.input(up_button)
+                current_down_button_state = GPIO.input(down_button)
 
-                if current_button_state == GPIO.HIGH and prev_button_state == GPIO.LOW:
-                    SECONDS_DELAY = change_speed(SECONDS_DELAY)
-                    print(f"Changed speed to: {SECONDS_DELAY}s delay")
-                    prev_button_state = current_button_state 
-                    time.sleep(0.3)  
-                    break
-                prev_button_state = current_button_state 
+                if current_up_button_state == GPIO.HIGH and prev_up_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_up(SECONDS_DELAY)
+                    print(f"Speed increased to: {SECONDS_DELAY}s delay")
+                    prev_up_button_state = current_up_button_state
+                    time.sleep(0.3)
+                if current_down_button_state == GPIO.HIGH and prev_down_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_down(SECONDS_DELAY)
+                    print(f"Speed decreased to: {SECONDS_DELAY}s delay")
+                    prev_down_button_state = current_down_button_state
+                    time.sleep(0.3)
+                    
+                prev_up_button_state = current_up_button_state
+                prev_down_button_state = current_down_button_state
         
                 transformation = Translation(center_x, center_y) @ Rotation(rotation_angle) @ Translation(-center_x, -center_y)
                 corner_matrix = transformation @ corner_matrix
@@ -242,15 +272,22 @@ elif TASK == 'demo':
 
 
             for _ in range (ITERATIONS):
-                current_button_state = GPIO.input(button_pin)
+                current_up_button_state = GPIO.input(up_button)
+                current_down_button_state = GPIO.input(down_button)
 
-                if current_button_state == GPIO.HIGH and prev_button_state == GPIO.LOW:
-                    SECONDS_DELAY = change_speed(SECONDS_DELAY)
-                    print(f"Changed speed to: {SECONDS_DELAY}s delay")
-                    prev_button_state = current_button_state  
-                    time.sleep(0.3)  
-                    break
-                prev_button_state = current_button_state
+                if current_up_button_state == GPIO.HIGH and prev_up_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_up(SECONDS_DELAY)
+                    print(f"Speed increased to: {SECONDS_DELAY}s delay")
+                    prev_up_button_state = current_up_button_state
+                    time.sleep(0.3)
+                if current_down_button_state == GPIO.HIGH and prev_down_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_down(SECONDS_DELAY)
+                    print(f"Speed decreased to: {SECONDS_DELAY}s delay")
+                    prev_down_button_state = current_down_button_state
+                    time.sleep(0.3)
+                    
+                prev_up_button_state = current_up_button_state
+                prev_down_button_state = current_down_button_state
 
                 center_x, center_y =  square_matrix[0,:].mean(), square_matrix[1,:].mean()
 
@@ -305,15 +342,22 @@ elif TASK == 'demo':
             cx, cy  = 0, 0.02
             
             for _ in range (ITERATIONS):
-                current_button_state = GPIO.input(button_pin)
+                current_up_button_state = GPIO.input(up_button)
+                current_down_button_state = GPIO.input(down_button)
 
-                if current_button_state == GPIO.HIGH and prev_button_state == GPIO.LOW:
-                    SECONDS_DELAY = change_speed(SECONDS_DELAY)
-                    print(f"Changed speed to: {SECONDS_DELAY}s delay")
-                    prev_button_state = current_button_state  
-                    time.sleep(0.3) 
-                    break
-                prev_button_state = current_button_state 
+                if current_up_button_state == GPIO.HIGH and prev_up_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_up(SECONDS_DELAY)
+                    print(f"Speed increased to: {SECONDS_DELAY}s delay")
+                    prev_up_button_state = current_up_button_state
+                    time.sleep(0.3)
+                if current_down_button_state == GPIO.HIGH and prev_down_button_state == GPIO.LOW:
+                    SECONDS_DELAY = change_speed_down(SECONDS_DELAY)
+                    print(f"Speed decreased to: {SECONDS_DELAY}s delay")
+                    prev_down_button_state = current_down_button_state
+                    time.sleep(0.3)
+                    
+                prev_up_button_state = current_up_button_state
+                prev_down_button_state = current_down_button_state
 
                 center_x, center_y =  square_matrix[0,:].mean(), square_matrix[1,:].mean()
                 
